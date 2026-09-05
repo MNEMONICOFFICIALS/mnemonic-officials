@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MNΞМΟNiC · members portal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=EB+Garamond:ital,wght@0,400;0,500;1,400;1,500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0d0d1a; --text:#f0ece8;
+    --lavender:#c8bfed; --yellow:#d4b96e; --rose:#d4537e; --red:#c94040; --blue:#6b9fd4;
+    --surface:#151525; --border:#2a2040;
+    --mono:'Share Tech Mono', monospace; --serif:'EB Garamond', serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:0.01ms !important; animation-iteration-count:1 !important; transition-duration:0.01ms !important;}
+  }
+  body{background:var(--bg); color:var(--text); font-family:var(--serif); min-height:100vh; position:relative;}
+  a{color:inherit;text-decoration:none;}
+
+  .grain{
+    position:fixed; inset:0; z-index:9999; pointer-events:none; opacity:0.05; mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  #scroll-progress{
+    position:fixed; top:0; left:0; height:2px; width:0%; background:var(--lavender);
+    box-shadow:0 0 8px var(--lavender); z-index:9998; transition:width 0.1s linear;
+  }
+
+  nav{
+    position:fixed; top:0; left:0; right:0; z-index:500;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:18px 5vw; background:rgba(13,13,26,0.72); backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--border);
+  }
+  .nav-logo{font-family:var(--mono); font-size:0.85rem; letter-spacing:0.15em; color:var(--lavender);}
+  .back-link{font-family:var(--mono); font-size:0.7rem; opacity:0.7; transition:opacity 0.3s;}
+  .back-link:hover{opacity:1; color:var(--lavender);}
+
+  .portal-header{padding:150px 8vw 40px; max-width:1100px; margin:0 auto;}
+  .portal-header .tag{font-family:var(--mono); font-size:0.7rem; color:var(--yellow); letter-spacing:0.08em; opacity:0.85;}
+  .portal-header h1{font-family:var(--serif); font-style:italic; font-size:clamp(1.8rem,4vw,2.6rem); margin-top:14px;}
+
+  .tabs{
+    display:flex; gap:6px; flex-wrap:wrap; padding:0 8vw; max-width:1100px; margin:0 auto 40px;
+    border-bottom:1px solid var(--border);
+  }
+  .tab-btn{
+    background:none; border:none; color:var(--text); opacity:0.55;
+    font-family:var(--mono); font-size:0.72rem; letter-spacing:0.04em;
+    padding:14px 16px; cursor:pointer; position:relative; transition:opacity 0.3s, color 0.3s;
+  }
+  .tab-btn::after{
+    content:''; position:absolute; left:0; right:0; bottom:-1px; height:2px;
+    background:var(--lavender); transform:scaleX(0); transition:transform 0.3s ease;
+  }
+  .tab-btn.active{opacity:1; color:var(--lavender);}
+  .tab-btn.active::after{transform:scaleX(1);}
+  .tab-btn:hover{opacity:0.9;}
+
+  main{max-width:1100px; margin:0 auto; padding:0 8vw 120px; min-height:50vh;}
+  .panel{display:none; opacity:0; transition:opacity 0.4s ease;}
+  .panel.active{display:block; opacity:1;}
+
+  .grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(240px,1fr)); gap:20px;}
+
+  /* projects */
+  .project-card{
+    background:var(--surface); border:1px solid var(--border); border-radius:6px; padding:22px;
+  }
+  .project-title{font-family:var(--serif); font-style:italic; font-size:1.2rem; margin-bottom:10px;}
+  .project-meta{font-family:var(--mono); font-size:0.68rem; opacity:0.6; line-height:1.9;}
+  .status-pill{
+    display:inline-block; font-family:var(--mono); font-size:0.62rem; padding:3px 10px;
+    border-radius:20px; margin-top:10px; border:1px solid currentColor;
+  }
+  .status-progress{color:var(--yellow);}
+  .status-done{color:var(--blue);}
+  .status-planning{color:var(--rose);}
+  .bandlab-btn{
+    display:inline-block; margin-top:14px; font-family:var(--mono); font-size:0.68rem;
+    border:1px solid var(--lavender); color:var(--lavender); padding:8px 14px; border-radius:4px;
+    transition:background 0.3s,color 0.3s;
+  }
+  .bandlab-btn:hover{background:var(--lavender); color:var(--bg);}
+
+  /* signal wallet */
+  .wallet-card{
+    background:var(--surface); border:1px solid var(--border); border-left:3px solid var(--m-color);
+    border-radius:6px; padding:22px; display:flex; align-items:center; justify-content:space-between;
+  }
+  .wallet-name{font-family:var(--serif); font-style:italic; font-size:1.1rem; color:var(--m-color);}
+  .wallet-count{font-family:var(--mono); font-size:1.6rem; color:var(--text);}
+  .wallet-unit{font-family:var(--mono); font-size:0.62rem; opacity:0.55; display:block; text-align:right;}
+
+  /* battles */
+  .battle-card{
+    background:var(--surface); border:1px solid var(--border); border-radius:6px; padding:22px;
+    transition:transform 0.25s ease;
+  }
+  .battle-card:hover{animation:shakeCard 0.4s ease;}
+  @keyframes shakeCard{
+    0%,100%{transform:translateX(0);} 25%{transform:translateX(-3px);} 75%{transform:translateX(3px);}
+  }
+  .battle-title{font-family:var(--serif); font-style:italic; font-size:1.15rem; margin-bottom:8px;}
+  .battle-meta{font-family:var(--mono); font-size:0.68rem; opacity:0.6;}
+  .battle-status{color:var(--red); font-family:var(--mono); font-size:0.65rem; margin-top:10px; display:inline-block;}
+
+  /* announcements */
+  .announce-card{
+    background:var(--surface); border:1px solid var(--border); border-radius:6px; padding:20px 22px;
+    margin-bottom:16px; opacity:0; transform:translateX(-16px);
+    animation:slideInAnnounce 0.5s ease forwards;
+  }
+  @keyframes slideInAnnounce{to{opacity:1; transform:translateX(0);}}
+  .announce-date{font-family:var(--mono); font-size:0.62rem; opacity:0.5; margin-bottom:6px;}
+  .announce-body{font-style:italic; opacity:0.9;}
+
+  /* directory */
+  .directory-row{
+    display:flex; align-items:center; gap:14px; padding:16px 4px; border-bottom:1px solid var(--border);
+  }
+  .status-dot{width:9px; height:9px; border-radius:50%; background:var(--yellow); flex-shrink:0;}
+  .status-dot.online{background:var(--blue); box-shadow:0 0 8px var(--blue);}
+  .dir-name{font-family:var(--serif); font-style:italic; font-size:1.05rem;}
+  .dir-role{font-family:var(--mono); font-size:0.65rem; opacity:0.55; margin-left:auto;}
+
+  /* protocol */
+  .protocol-block{margin-bottom:30px;}
+  .protocol-block h3{font-family:var(--mono); font-size:0.75rem; color:var(--yellow); letter-spacing:0.05em; margin-bottom:12px;}
+  .protocol-block ol, .protocol-block ul{padding-left:22px; opacity:0.88; line-height:2;}
+
+  /* ---------- access gate ---------- */
+  #portal-content.locked{display:none;}
+  .gate-overlay{
+    position:fixed; inset:0; z-index:6000;
+    display:flex; align-items:center; justify-content:center;
+    background:radial-gradient(ellipse at 50% 30%, #171732 0%, #0d0d1a 70%);
+    padding:24px;
+  }
+  .gate-box{
+    max-width:380px; width:100%; text-align:center;
+  }
+  .gate-tag{font-family:var(--mono); font-size:0.7rem; color:var(--yellow); letter-spacing:0.08em; opacity:0.85;}
+  .gate-title{font-family:var(--serif); font-style:italic; font-size:1.7rem; margin:14px 0 26px;}
+  .gate-input{
+    width:100%; background:var(--surface); border:1px solid var(--border); color:var(--text);
+    padding:13px 16px; font-family:var(--mono); font-size:0.85rem; border-radius:4px;
+    text-align:center; letter-spacing:0.05em;
+    transition:box-shadow 0.3s, border-color 0.3s;
+  }
+  .gate-input:focus{outline:none; border-color:var(--lavender); box-shadow:0 0 12px rgba(200,191,237,0.35);}
+  .gate-submit{
+    margin-top:14px; width:100%;
+    background:transparent; border:1px solid var(--lavender); color:var(--lavender);
+    font-family:var(--mono); font-size:0.75rem; padding:12px; border-radius:4px; cursor:pointer;
+    transition:background 0.3s, color 0.3s;
+  }
+  .gate-submit:hover{background:var(--lavender); color:var(--bg);}
+  .gate-error{
+    font-family:var(--mono); font-size:0.68rem; color:var(--red); margin-top:14px;
+    opacity:0; transition:opacity 0.3s;
+  }
+  .gate-error.show{opacity:0.9;}
+  .gate-back{display:inline-block; margin-top:26px; font-family:var(--mono); font-size:0.68rem; opacity:0.5; transition:opacity 0.3s;}
+  .gate-back:hover{opacity:0.9; color:var(--lavender);}
+</style>
+</head>
+<body>
+
+<div class="grain"></div>
+<div id="scroll-progress"></div>
+
+<div class="gate-overlay" id="gate-overlay">
+  <div class="gate-box">
+    <div class="gate-tag">restricted frequency</div>
+    <h1 class="gate-title">enter the passcode</h1>
+    <input type="password" class="gate-input" id="gate-input" placeholder="· · · · · · · · · ·" autocomplete="off">
+    <button class="gate-submit" id="gate-submit">tune in</button>
+    <div class="gate-error" id="gate-error">wrong frequency. try again.</div>
+    <a class="gate-back" href="index.html">← back to broadcast</a>
+  </div>
+</div>
+
+<div id="portal-content" class="locked">
+
+<nav>
+  <div class="nav-logo">MNΞМΟNiC</div>
+  <a class="back-link" href="index.html">← back to broadcast</a>
+</nav>
+
+<div class="portal-header">
+  <span class="tag">restricted frequency</span>
+  <h1>members portal</h1>
+</div>
+
+<div class="tabs" id="tabs">
+  <button class="tab-btn active" data-panel="projects">projects</button>
+  <button class="tab-btn" data-panel="wallet">signal wallet</button>
+  <button class="tab-btn" data-panel="battles">frequency battles</button>
+  <button class="tab-btn" data-panel="announcements">announcements</button>
+  <button class="tab-btn" data-panel="directory">member directory</button>
+  <button class="tab-btn" data-panel="protocol">broadcast protocol</button>
+</div>
+
+<main>
+
+  <!-- PROJECTS -->
+  <div class="panel active" id="panel-projects">
+    <div class="grid">
+      <div class="project-card">
+        <div class="project-title">debut cover — tba</div>
+        <div class="project-meta">month: —<br>deadline: —</div>
+        <span class="status-pill status-planning">planning</span><br>
+        <a class="bandlab-btn" href="#">open in bandlab →</a>
+      </div>
+      <div class="project-card">
+        <div class="project-title">unit stage concept</div>
+        <div class="project-meta">month: —<br>deadline: —</div>
+        <span class="status-pill status-planning">planning</span><br>
+        <a class="bandlab-btn" href="#">open in bandlab →</a>
+      </div>
+      <div class="project-card">
+        <div class="project-title">intro teaser audio</div>
+        <div class="project-meta">month: —<br>deadline: —</div>
+        <span class="status-pill status-progress">in progress</span><br>
+        <a class="bandlab-btn" href="#">open in bandlab →</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- SIGNAL WALLET -->
+  <div class="panel" id="panel-wallet">
+    <div class="grid" id="wallet-grid"></div>
+  </div>
+
+  <!-- FREQUENCY BATTLES -->
+  <div class="panel" id="panel-battles">
+    <div class="grid">
+      <div class="battle-card">
+        <div class="battle-title">no active battles</div>
+        <div class="battle-meta">the frequency is quiet for now.</div>
+        <span class="battle-status">standby</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ANNOUNCEMENTS -->
+  <div class="panel" id="panel-announcements">
+    <div id="announce-list"></div>
+  </div>
+
+  <!-- MEMBER DIRECTORY -->
+  <div class="panel" id="panel-directory">
+    <div id="directory-list"></div>
+  </div>
+
+  <!-- BROADCAST PROTOCOL -->
+  <div class="panel" id="panel-protocol">
+    <div class="protocol-block">
+      <h3>attendance</h3>
+      <ul>
+        <li>notify the group chat if you can't make a scheduled recording or practice.</li>
+        <li>chronic no-shows will be brought up privately before any group decision is made.</li>
+      </ul>
+    </div>
+    <div class="protocol-block">
+      <h3>content &amp; posting</h3>
+      <ol>
+        <li>run solo content past the group before posting if it references MNΞМΟNiC.</li>
+        <li>credit vocal directors, choreographers, and editors in every release.</li>
+      </ol>
+    </div>
+    <div class="protocol-block">
+      <h3>conduct</h3>
+      <ul>
+        <li>disagreements stay inside the group chat, not the comments section.</li>
+        <li>be honest about your bandwidth before taking on a new part.</li>
+      </ul>
+    </div>
+  </div>
+
+</main>
+
+</div>
+
+<script>
+/* ---------- access gate ---------- */
+const PORTAL_PASSWORD = 'Youhavebeenherebefore5';
+const gateOverlay = document.getElementById('gate-overlay');
+const portalContent = document.getElementById('portal-content');
+const gateInput = document.getElementById('gate-input');
+const gateSubmit = document.getElementById('gate-submit');
+const gateError = document.getElementById('gate-error');
+
+function unlockPortal(){
+  gateOverlay.style.display = 'none';
+  portalContent.classList.remove('locked');
+}
+function checkPassword(){
+  if(gateInput.value === PORTAL_PASSWORD){
+    unlockPortal();
+  } else {
+    gateError.classList.add('show');
+    gateInput.value = '';
+    gateInput.focus();
+  }
+}
+gateSubmit.addEventListener('click', checkPassword);
+gateInput.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') checkPassword(); });
+
+/* ---------- scroll progress ---------- */
+const progressBar = document.getElementById('scroll-progress');
+window.addEventListener('scroll', ()=>{
+  const h = document.documentElement;
+  const scrolled = (h.scrollTop) / (h.scrollHeight - h.clientHeight) * 100;
+  progressBar.style.width = scrolled + '%';
+});
+
+/* ---------- member data ---------- */
+const MEMBERS = [
+  {name:'ivy', role:'the source', color:'#c8bfed', signal:1240},
+  {name:'isabella', role:'the static', color:'#c94040', signal:980},
+  {name:'rya', role:'the resonance', color:'#d4b96e', signal:1105},
+  {name:'kelsy', role:'the wavelength', color:'#6b9fd4', signal:875},
+  {name:'lelani', role:'the afterimage', color:'#d4537e', signal:1330}
+];
+
+/* ---------- tabs ---------- */
+const tabBtns = document.querySelectorAll('.tab-btn');
+tabBtns.forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    tabBtns.forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    const panel = document.getElementById('panel-'+btn.dataset.panel);
+    panel.classList.add('active');
+    if(btn.dataset.panel === 'wallet') animateWallet();
+    if(btn.dataset.panel === 'announcements') buildAnnouncements();
+  });
+});
+
+/* ---------- signal wallet with count-up ---------- */
+const walletGrid = document.getElementById('wallet-grid');
+function buildWallet(){
+  walletGrid.innerHTML = '';
+  MEMBERS.slice().sort((a,b)=>b.signal-a.signal).forEach(m=>{
+    const card = document.createElement('div');
+    card.className = 'wallet-card';
+    card.style.setProperty('--m-color', m.color);
+    card.innerHTML = `
+      <div>
+        <div class="wallet-name">${m.name}</div>
+        <div class="wallet-unit">${m.role}</div>
+      </div>
+      <div>
+        <div class="wallet-count" data-target="${m.signal}">0</div>
+        <span class="wallet-unit">signal pts</span>
+      </div>`;
+    walletGrid.appendChild(card);
+  });
+}
+buildWallet();
+let walletAnimated = false;
+function animateWallet(){
+  if(walletAnimated) return;
+  walletAnimated = true;
+  document.querySelectorAll('.wallet-count').forEach(el=>{
+    const target = parseInt(el.dataset.target, 10);
+    let current = 0;
+    const step = Math.max(1, Math.round(target/60));
+    const timer = setInterval(()=>{
+      current += step;
+      if(current >= target){ current = target; clearInterval(timer); }
+      el.textContent = current.toLocaleString();
+    }, 16);
+  });
+}
+
+/* ---------- announcements ---------- */
+const announceList = document.getElementById('announce-list');
+const ANNOUNCEMENTS = [
+  {date:'transmission log', body:'welcome to the portal. protocol has been updated — check the broadcast protocol tab.'},
+  {date:'transmission log', body:'first cover selection is underway. watch the projects tab for the reveal.'},
+  {date:'transmission log', body:"signal wallet points now reflect this month's activity."}
+];
+let announceBuilt = false;
+function buildAnnouncements(){
+  if(announceBuilt) return;
+  announceBuilt = true;
+  ANNOUNCEMENTS.forEach((a,i)=>{
+    const div = document.createElement('div');
+    div.className = 'announce-card';
+    div.style.animationDelay = (i*0.15)+'s';
+    div.innerHTML = `<div class="announce-date">${a.date}</div><div class="announce-body">${a.body}</div>`;
+    announceList.appendChild(div);
+  });
+}
+
+/* ---------- directory ---------- */
+const directoryList = document.getElementById('directory-list');
+MEMBERS.forEach((m,i)=>{
+  const row = document.createElement('div');
+  row.className = 'directory-row';
+  row.innerHTML = `<span class="status-dot ${i%2===0?'online':''}"></span><span class="dir-name" style="color:${m.color}">${m.name}</span><span class="dir-role">${m.role}</span>`;
+  directoryList.appendChild(row);
+});
+</script>
+</body>
+</html>
